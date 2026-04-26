@@ -2,7 +2,6 @@ import paho.mqtt.client as mqtt
 import json
 import base64
 
-# Configuration
 THE_BROKER = "eu1.cloud.thethings.network"
 THE_TOPIC = "v3/abb-app@ttn/devices/+/up"
 USERNAME = "abb-app@ttn"
