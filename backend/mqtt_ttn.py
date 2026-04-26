@@ -12,11 +12,11 @@ import json
 # -----------------------------
 MQTT_SERVER = "eu1.cloud.thethings.network"
 MQTT_PORT = 8883
-MQTT_UserName = "abb-app@ttn"
-APP_ID = "abb-app@ttn"
-API_KEY = "NNSXS.WOM6WDMQTIKE6F7D4PAR6GYTQAJM4OLYOOAH4DQ.435TDOASRAJHQ553HFGGTU6AB5EWJITUOHONO4GKMQFTGJCFZNMQ"
+MQTT_UserName = "fst-scm-b195-tst@ttn"
+APP_ID = "fst-scm-b195-tst@ttn"
+API_KEY = "NNSXS.NXSXUR2AKM3DFD47EF5ZOQ4ADXLNQJ2NJ5HUWDY.XVZ4PH25CSHBRER4J4GKF47EPVL6AYXH3AJG7YIEI4MVBNG3G5VA"
 
-MQTT_TOPIC = "v3/abb-app@ttn/devices/+/up"
+MQTT_TOPIC = "v3/fst-scm-b195-tst@ttn/devices/+/up"
 
 # -----------------------------
 # FORMAT TTN MESSAGE
