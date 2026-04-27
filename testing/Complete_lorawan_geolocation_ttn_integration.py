@@ -62,6 +62,33 @@ def get_moving_average(dev_id, new_coord):
     history[dev_id].append(new_coord)
     return np.mean(history[dev_id], axis=0)
 
+def parse_toa(val):
+    """Robustly parse various TOA/time formats to epoch seconds or return None."""
+    if val is None:
+        return None
+    # numeric types (seconds / milliseconds / microseconds)
+    if isinstance(val, (int, float)):
+        v = float(val)
+        if v > 1e14:        # microseconds
+            return v / 1e6
+        if v > 1e11:        # milliseconds
+            return v / 1e3
+        return v            # seconds
+    s = str(val).strip()
+    # pure digit strings -> interpret as epoch (sec/ms/us)
+    if s.isdigit():
+        v = float(s)
+        if v > 1e14:
+            return v / 1e6
+        if v > 1e11:
+            return v / 1e3
+        return v
+    # otherwise try ISO parsing
+    try:
+        return dp.parse(s).timestamp()
+    except Exception:
+        return None
+
 # --- THE SOLVERS ---
 
 def solve_case_1(gateways):
@@ -107,15 +134,16 @@ def solver_3gw_cost(coords, gateways):
 
     for i, gw in enumerate(gateways):
         dist = np.sqrt((lat - gw['lat'])**2 + (lon - gw['lon'])**2) * 111320
-        rssi_dist = 10 ** ((RSSI_REF - gw['rssi']) / (10 * PATH_LOSS_N))
+        rssi_dist = 10 ** ((RSSI_REF - gw.get('rssi', RSSI_REF)) / (10 * PATH_LOSS_N))
         rssi_err = (dist - rssi_dist)**2
 
         tdoa_err = 0
-        if i > 0 and gw['toa'] and ref_gw['toa']:
+        # check explicitly for None (0 is a valid timestamp)
+        if i > 0 and (gw.get('toa') is not None) and (ref_gw.get('toa') is not None):
             time_diff = gw['toa'] - ref_gw['toa']
             tdoa_err = ((dist - ref_dist) - (time_diff * C))**2
 
-        weight = 1.0 if gw['snr'] > -15 else 0.05
+        weight = 1.0 if gw.get('snr', -100) > -15 else 0.05
         error += weight * (0.7 * rssi_err + 0.3 * tdoa_err)
     return error
 
@@ -123,12 +151,21 @@ def solve_case_3(dev_id, metadata):
     """Three+ Gateways: Chan Algorithm with Robust Weighting."""
     gateways = []
     for gw in metadata:
-        toa_str = gw.get('timestamp') or gw.get('time')
-        toa = dp.parse(toa_str).timestamp() if toa_str else None
+        # safe access to location/rssi/snr
+        loc = gw.get('location') or {}
+        lat = loc.get('latitude')
+        lon = loc.get('longitude')
+        if lat is None or lon is None:
+            continue
+        toa_str = gw.get('timestamp') or gw.get('time') or gw.get('received_at')
+        toa = parse_toa(toa_str)
         gateways.append({
-            'lat': gw['location']['latitude'], 'lon': gw['location']['longitude'],
-            'rssi': gw['rssi'], 'snr': gw['snr'], 'toa': toa
+            'lat': lat, 'lon': lon,
+            'rssi': gw.get('rssi'), 'snr': gw.get('snr'), 'toa': toa
         })
+
+    if not gateways:
+        return None, None
 
     start_pos = [np.mean([g['lat'] for g in gateways]), np.mean([g['lon'] for g in gateways])]
     res = minimize(solver_3gw_cost, start_pos, args=(gateways,), method='Nelder-Mead')
