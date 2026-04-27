@@ -29,10 +29,10 @@ from scipy.optimize import minimize
 import paho.mqtt.client as mqtt
 
 # --- CONFIGURATION ---
-TTN_USERNAME = "your-app-id@ttn"
-TTN_PASSWORD = "NNSXS.YOUR_API_KEY..."
+TTN_USERNAME = "fst-scm-b195-tst@ttn"
+TTN_PASSWORD = "NNSXS.NXSXUR2AKM3DFD47EF5ZOQ4ADXLNQJ2NJ5HUWDY.XVZ4PH25CSHBRER4J4GKF47EPVL6AYXH3AJG7YIEI4MVBNG3G5VA"
 MQTT_BROKER = "eu1.cloud.thethings.network"
-MQTT_PORT = 1883
+MQTT_PORT = 8883
 
 # --- PHYSICAL CONSTANTS ---
 C = 299792458  # Speed of light (m/s)
