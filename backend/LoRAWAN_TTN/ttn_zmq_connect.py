@@ -30,18 +30,18 @@ from scipy.optimize import minimize
 import dateutil.parser as dp
 
 # --- CONFIGURATION ---
-TTN_USERNAME = "fst-scm-b195-tst@ttn"
-TTN_PASSWORD = "NNSXS.NXSXUR2AKM3DFD47EF5ZOQ4ADXLNQJ2NJ5HUWDY.XVZ4PH25CSHBRER4J4GKF47EPVL6AYXH3AJG7YIEI4MVBNG3G5VA"
-MQTT_BROKER = "eu1.cloud.thethings.network"
-MQTT_PORT = 8883
-TOPIC = "v3/fst-scm-b195-tst@ttn/devices/+/up"
+TTN_USERNAME = "fst-scm-b195-tst@ttn" # Replace with your actual TTN Application ID
+TTN_PASSWORD = "NNSXS.NXSXUR2AKM3DFD47EF5ZOQ4ADXLNQJ2NJ5HUWDY.XVZ4PH25CSHBRER4J4GKF47EPVL6AYXH3AJG7YIEI4MVBNG3G5VA"  # Replace with your actual TTN API Key
+MQTT_BROKER = "eu1.cloud.thethings.network" # TTN MQTT Broker URL
+MQTT_PORT = 8883 # Secure MQTT Port
+TOPIC = "v3/fst-scm-b195-tst@ttn/devices/+/up" # MQTT topic pattern to subscribe to all device uplinks in the application
 
-# this is   The ZeroMQ server
+# The ZeroMQ server will listen on tcp://*:5555 for incoming messages from this script and can be consumed by any ZeroMQ client (e.g., a dashboard or database ingestor) that connects to the same address.
 zmq_context = zmq.Context()
 zmq_socket = zmq_context.socket(zmq.PUB)
 zmq_socket.bind("tcp://*:5555")
 
-# Solver Constants
+# Solver Constants and Parameters
 C = 299792458.0            # Speed of light
 PATH_LOSS_EXPONENT = 3.0   # For 2-GW Logic
 PATH_LOSS_N = 2.5          # For 3-GW Logic
@@ -52,7 +52,7 @@ BASELINE_THRESHOLD = 100.0 # Meters
 to_meters = Transformer.from_crs("epsg:4326", "epsg:32632", always_xy=True)
 to_gps = Transformer.from_crs("epsg:32632", "epsg:4326", always_xy=True)
 
-# Global Buffers
+# Global Buffers and State
 history = {} # For Moving Average (Case 3)
 
 # --- HELPER FUNCTIONS ---
@@ -183,8 +183,7 @@ def on_message(client, userdata, msg):
 
         # 1. Parse Sensor Values (Mapping depends on your Payload Formatter)
         decoded = uplink.get('decoded_payload', {})
-        sensor_data = {
-            "device_id": dev_id,
+        sensor_data = {            
             "battery": decoded.get("battery") or decoded.get("volt"),
             "temperature": decoded.get("temperature") or decoded.get("temp"),
             "timestamp": uplink.get("received_at")
@@ -207,8 +206,11 @@ def on_message(client, userdata, msg):
             sensor_data["gw_count"] = count
 
             # 3. Output to ZeroMQ
+
+            sensor_data = {dev_id: [sensor_data]} # Wrap in device_id structure
+            
             zmq_socket.send_json(sensor_data)
-            print(f"Published: {dev_id} | L: {lat:.5f}, {lon:.5f} | T: {sensor_data['temperature']}")
+            print(sensor_data)
 
     except Exception as e:
         print(f"Error processing message: {e}")
