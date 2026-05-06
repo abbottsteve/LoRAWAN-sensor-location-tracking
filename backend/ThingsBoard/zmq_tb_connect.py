@@ -1,3 +1,19 @@
+'''
+
+@author: Stephen Boachie
+@date: 2024-06-01
+@tile: ZMQ to ThingsBoard MQTT Bridge
+
+@description: This script acts as a bridge between a ZMQ publisher and the ThingsBoard MQTT Gateway. 
+It subscribes to a ZMQ topic, receives JSON data, and forwards it to ThingsBoard using MQTT. 
+The script includes error handling and logging for better traceability.
+
+@prerequisites:
+- Install required libraries: 
+
+
+
+'''
 import paho.mqtt.client as mqtt
 import zmq
 import json
@@ -7,7 +23,7 @@ import logging
 # --- Configuration ---
 THINGSBOARD_HOST = "mqtt.eu.thingsboard.cloud"
 THINGSBOARD_PORT = 1883
-GATEWAY_TOKEN = "lRTivQoUvbtOg7ek2izU"
+GATEWAY_TOKEN = "lRTivQoUvbtOg7ek2izU" # Replace with your actual gateway token (TB Gateway Access Token)
 MQTT_TOPIC = "v1/gateway/telemetry"
 
 ZMQ_ENDPOINT = "tcp://localhost:5555"
