@@ -44,6 +44,7 @@ import time
 import numpy as np
 import zmq
 import paho.mqtt.client as mqtt
+from paho.mqtt.enums import CallbackAPIVersion
 import ssl
 from collections import deque
 from pyproj import Transformer
@@ -223,7 +224,8 @@ def on_message(client, userdata, msg):
             lat, lon = solve_case_3(dev_id, gws_with_loc)
 
         if lat and lon:
-            sensor_data["location"] = {"latitude": round(lat, 6), "longitude": round(lon, 6)}
+            sensor_data["latitude"] = round(lat, 6)
+            sensor_data["longitude"] = round(lon, 6)
             sensor_data["gw_count"] = count
 
             # 3. Output to ZeroMQ
@@ -237,7 +239,7 @@ def on_message(client, userdata, msg):
         print(f"Error processing message: {e}")
 
 # --- START ---
-client = mqtt.Client(transport="tcp")
+client = mqtt.Client(CallbackAPIVersion.VERSION1, transport="tcp")
 client.username_pw_set(TTN_USERNAME, TTN_PASSWORD)
 
 # TLS Setup for Port 8883
